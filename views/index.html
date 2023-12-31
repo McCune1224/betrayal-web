@@ -1,12 +1,21 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <title></title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <link rel="stylesheet" href="/static/output.css" />
-  </head>
-  <body>
-    <h1 class="text-9xl text-red-600">hi</h1>
-</html>
+{{ template "head" . }}
+<body class="bg-zinc-900 text-sky-50">
+  {{ template "navbar" . }}
+
+  <main>
+    <header
+      class="bg-[#26282f] h-screen flex flex-col justify-center items-center text-white"
+    >
+      <h1 class="text-4xl font-bold mb-4">Betrayal Game Managment</h1>
+      <p class="text-lg mb-8 px-4 text-center">
+        [Insert something intersting/flashy here idk lol]
+      </p>
+      <button
+        class="inline-flex items-center justify-center ring -offset-background focus-visible:outline-none focus-visible:ring- 2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-8 py-3 text-lg font-semibold bg-purple-600 text-white rounded-lg shadow-md hover:bg-purple-500 transition-colors duration-200"
+      >
+        <i class="fa-brands fa-discord">  </i> 
+       Sign in with Discord
+      </button>
+    </header>
+  </main>
+</body>

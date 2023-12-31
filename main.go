@@ -1,32 +1,24 @@
 package main
 
 import (
-	"html/template"
-	"io"
 	"log"
 	"os"
 
+	"github.com/McCune1224/betrayal-web/endpoints"
+	"github.com/McCune1224/betrayal-web/handler"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-type Templates struct {
-	templates *template.Template
-}
-
-func (t *Templates) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-	return t.templates.ExecuteTemplate(w, name, data)
-}
-
-func NewTemplates() *Templates {
-	return &Templates{
-		templates: template.Must(template.ParseGlob("views/*.html")),
-	}
-}
-
 func main() {
 	app := echo.New()
+	// Connect to DB
+	db, err := sqlx.Connect("postgres", os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Fatal("error opening database,", err)
+	}
 
 	app.Use(middleware.LoggerWithConfig(
 		middleware.LoggerConfig{
@@ -34,12 +26,10 @@ func main() {
 		},
 	))
 
-	app.Renderer = NewTemplates()
+	handler := handler.NewHandler(db)
+	app.Renderer = handler.GetTemplates()
 	app.Static("/static", "static")
-
-	app.GET("/", func(c echo.Context) error {
-		return c.Render(200, "index.html", nil)
-	})
+	endpoints.AttachRoutes(app, handler)
 
 	log.Fatal(app.Start(":" + os.Getenv("PORT")))
 }
