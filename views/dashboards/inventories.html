@@ -1,0 +1,20 @@
+{{ template "head" . }}
+<body class="bg-zinc-900 text-sky-50">
+  {{ template "navbar" . }}
+
+  <main>
+    <main
+      class="bg-[#26282f] h-screen flex flex-col justify-center items-center text-white"
+    >
+      <div class="grid grid-cols-4 gap-8">
+        {{ range . }}
+        <a src="/inventories/player/{{ .User.Username }}"
+          class="transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 hover:bg-purple-800 duration-300"
+        >
+          {{ template "inventory_card" . }}
+        </a>
+        {{ end }}
+      </div>
+    </main>
+  </main>
+</body>

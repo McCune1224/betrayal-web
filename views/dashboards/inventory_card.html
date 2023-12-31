@@ -1,0 +1,118 @@
+{{ define "inventory_card" }} {{ if eq .Inventory.Alignment "GOOD" }}
+<div class="border border-green-500">
+  {{ else if eq .Inventory.Alignment "BAD" }}
+  <div class="border border-red-500">
+    {{ else }}
+    <div class="border border-yellow-500">
+      {{ end }}
+
+      <div class="flex-col space-y-1.5 flex justify-between items-start">
+        <h3 class="tracking-tight text-xl font-semibold">
+          {{ .User.Username }}
+        </h3>
+        <span
+          class="relative flex shrink-0 overflow-hidden rounded-full h-12 w-12"
+          ><img
+            class="aspect-square h-full w-full"
+            alt="@discord_user"
+            src="{{
+        .User.IconURL
+        }}"
+        /></span>
+      </div>
+      <div class="grid gap-2 px-4">
+        <div class="flex items-center gap-2">
+          <i class="fa-regular fa-address-card"></i>
+          <p class="text-md text-sky-100 font-bold">Role:</p>
+          <p class="text-sm font-medium">{{ .Inventory.RoleName }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-masks-theater"></i>
+          <p class="text-md text-sky-100 font-bold">Alignment:</p>
+          <p class="text-sm font-medium">{{ .Inventory.Alignment }}</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-wand-magic"></i>
+          <p class="text-md text-sky-100 font-bold">Abilities:</p>
+          {{ range .Inventory.Abilities }}
+          <p class="text-sm font-medium">{{ . }},</p>
+          {{ end }}
+        </div>
+
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-plus"></i>
+          <p class="text-md text-sky-100 font-bold">Perks:</p>
+          {{ range .Inventory.Perks }}
+          <p class="text-sm font-medium">{{ . }},</p>
+          {{ end }}
+        </div>
+
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-question"></i>
+          <p class="text-md text-sky-100 font-bold">Any Abilities:</p>
+          {{ range .Inventory.AnyAbilities }}
+          <p class="text-sm font-medium">{{ . }},</p>
+          {{ end }}
+        </div>
+
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-toolbox"></i>
+          <p class="text-md text-sky-100 font-bold">Items:</p>
+          {{ range .Inventory.Items }}
+          <p class="text-sm font-medium">{{ . }},</p>
+          {{ end }}
+          <p>[ Limit {{ .Inventory.ItemLimit }} ]</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-sack-dollar"></i>
+          <p class="text-md text-sky-100 font-bold">Coins:</p>
+          <p class="text-sm font-medium">
+            {{ .Inventory.Coins }} [{{ .Inventory.CoinBonus }}%]
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved"></i>
+          <p class="text-md text-sky-100 font-bold">Immunities:</p>
+          {{ range .Inventory.Immunities }}
+          <p class="text-sm font-medium">{{ . }},</p>
+          {{ end }}
+        </div>
+
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-fire"></i>
+          <p class="text-md text-sky-100 font-bold">Statuses:</p>
+          {{ range .Inventory.Statuses }}
+          <p class="text-sm font-medium">{{ . }},</p>
+          {{ end }}
+        </div>
+
+        <div class="flex items-center gap-2">
+          <i class="fa-regular fa-star"></i>
+          <p class="text-md text-sky-100 font-bold">Effects:</p>
+          {{ range .Inventory.Effects }}
+          <p class="text-sm font-medium">{{ . }},</p>
+          {{ end }}
+        </div>
+
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-clover"></i>
+          <p class="text-md text-sky-100 font-bold">Luck:</p>
+          <p>{{ .Inventory.Luck }}</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-note-sticky"></i>
+          <p class="text-md text-sky-100 font-bold">Notes:</p>
+          {{ range .Inventory.Notes }}
+          <p>{{ . }}</p>
+          {{ end }}
+        </div>
+      </div>
+    </div>
+
+    {{ end }}
+  </div>
+</div>

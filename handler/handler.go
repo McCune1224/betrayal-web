@@ -2,6 +2,8 @@ package handler
 
 import (
 	"io"
+	"log"
+	"path/filepath"
 	"text/template"
 
 	"github.com/jmoiron/sqlx"
@@ -44,7 +46,20 @@ func (t *EchoTemplates) Render(w io.Writer, name string, data interface{}, c ech
 
 
 func NewTemplates() *EchoTemplates {
+  dirs := []string{
+    "views/*.html",
+    "views/dashboards/*.html",
+  }
+  files := []string{}
+  for _, dir := range dirs {
+    ff, err := filepath.Glob(dir)
+    if err != nil {
+      log.Fatal(err)
+    }
+    files = append(files, ff...)
+  }
+
 	return &EchoTemplates{
-		templates: template.Must(template.ParseGlob("views//*.html")),
+		templates: template.Must(template.ParseFiles(files...)),
 	}
 }

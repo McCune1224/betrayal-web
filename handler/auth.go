@@ -48,7 +48,7 @@ func NewDiscordOauth() *oauth2.Config {
 	cfg := &oauth2.Config{
 		ClientID:     os.Getenv("DISCORD_CLIENT_ID"),
 		ClientSecret: os.Getenv("DISCORD_CLIENT_SECRET"),
-		Scopes:       []string{"identify", "email", "connections"},
+		Scopes:       []string{"identify", "email", "connections", "guilds", "guilds.members.read", "bot"},
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  "https://discord.com/oauth2/authorize",
 			TokenURL: "https://discord.com/api/oauth2/token",

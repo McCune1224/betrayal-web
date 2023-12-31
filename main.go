@@ -26,6 +26,11 @@ func main() {
 		},
 	))
 
+  app.Use(middleware.Recover())
+
+  //trailling slash
+  app.Pre(middleware.RemoveTrailingSlash())
+
 	handler := handler.NewHandler(db)
 	app.Renderer = handler.GetTemplates()
 	app.Static("/static", "static")
