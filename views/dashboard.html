@@ -1,0 +1,15 @@
+{{ template "head" . }}
+<body class="bg-zinc-900 text-sky-50">
+  {{ template "navbar" . }}
+
+  <main>
+    <header
+      class="bg-[#26282f] h-screen flex flex-col justify-center items-center text-white"
+    >
+      <h1>Hello {{ .Username }}</h1>
+
+      <img src={{ .Avatar }} alt="" />
+
+    </header>
+  </main>
+</body>
