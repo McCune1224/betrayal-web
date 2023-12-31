@@ -20,7 +20,7 @@ COPY . .
 
 
 # Build the application
-RUN go build -o ./bin/main /app/cmd/
+RUN go build -o ./bin/main /app/main.go
 
 # Run the binary program produced by `go install`
 CMD ["./bin/main"]
