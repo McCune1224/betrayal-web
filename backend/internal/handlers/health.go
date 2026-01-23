@@ -16,6 +16,7 @@ func HealthHandler(c echo.Context) error {
 	if internal.Conn == nil {
 		return c.JSON(http.StatusServiceUnavailable, map[string]string{"status": "db not connected"})
 	}
+	// Use the Pingable interface for testability (see internal/db.go)
 	if err := internal.Conn.Ping(ctx); err != nil {
 		return c.JSON(http.StatusServiceUnavailable, map[string]string{"status": "db error", "error": err.Error()})
 	}

@@ -5,7 +5,11 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-var Conn *pgx.Conn
+type Pingable interface {
+	Ping(context.Context) error
+}
+
+var Conn Pingable
 
 func InitDB(ctx context.Context, dbURL string) error {
 	conn, err := pgx.Connect(ctx, dbURL)
@@ -17,8 +21,8 @@ func InitDB(ctx context.Context, dbURL string) error {
 }
 
 func CloseDB(ctx context.Context) error {
-	if Conn != nil {
-		return Conn.Close(ctx)
+	if real, ok := Conn.(*pgx.Conn); ok && real != nil {
+		return real.Close(ctx)
 	}
 	return nil
 }
