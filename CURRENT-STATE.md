@@ -37,10 +37,10 @@
 | `internal/db.go` | [DONE] | Database connection with pgx |
 | `internal/models/types.go` | [DONE] | Room, Player, Action, Role structs defined |
 | `internal/game/room.go` | [PARTIAL] | CreateRoom, JoinRoom, AdvancePhase work. Missing: StartGame, LeaveRoom, SubmitAction, DeleteAction |
-| `internal/game/hub.go` | [PARTIAL] | Hub struct, register/unregister channels, BroadcastToRoom exist. Not integrated with actual WebSocket connections |
+| `internal/game/hub.go` | [DONE] | Hub struct, register/unregister channels, BroadcastToRoom, integrated with WebSocket connections |
 | `internal/game/errors.go` | [PARTIAL] | Only 2 errors defined (ErrRoomNotFound, ErrInvalidRoom). Missing many error types |
 | `internal/handlers/rooms.go` | [PARTIAL] | CreateRoom, JoinRoom handlers work. Missing: StartGame, SubmitAction, DeleteAction endpoints |
-| `internal/handlers/ws.go` | [STUB] | **Empty file** - no WebSocket implementation |
+| `internal/handlers/ws.go` | [DONE] | Full WebSocket implementation with learning-mode comments, readPump, writePump, message handling |
 
 ### Database Layer
 
@@ -67,7 +67,7 @@
 | Directory | Status | Notes |
 |-----------|--------|-------|
 | `internal/game/*_test.go` | [DONE] | 32 tests: hub_test.go (15), room_test.go (17) |
-| `internal/handlers/*_test.go` | [MISSING] | **No handler tests exist** |
+| `internal/handlers/*_test.go` | [DONE] | 13 tests: ws_test.go (WebSocket upgrade, messaging, disconnect) |
 
 ---
 
@@ -121,10 +121,6 @@ These must be resolved before significant progress can be made:
 1. **No frontend lib files**
    - Cannot connect frontend to backend
    - Fix: Create stores.js, api.js, ws.js
-
-2. **WebSocket handler not implemented**
-   - ws.go is still an empty stub
-   - Fix: Implement WebSocket upgrade and read/write pumps
 
 ---
 

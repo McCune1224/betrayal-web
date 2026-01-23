@@ -67,7 +67,7 @@ func TestHub_RegisterClient_NewRoom(t *testing.T) {
 
 	// Send the client to the register channel
 	// The hub.Run() goroutine will process this
-	hub.register <- client
+	hub.Register(client)
 
 	// Give the hub goroutine time to process the registration
 	// In production code, you might use sync primitives instead
@@ -110,9 +110,9 @@ func TestHub_RegisterClient_ExistingRoom(t *testing.T) {
 	client3 := &Client{RoomCode: "ROOM1", PlayerID: "p3", Send: make(chan Message, 10)}
 
 	// Register all three clients to the same room
-	hub.register <- client1
-	hub.register <- client2
-	hub.register <- client3
+	hub.Register(client1)
+	hub.Register(client2)
+	hub.Register(client3)
 
 	time.Sleep(20 * time.Millisecond)
 
@@ -142,8 +142,8 @@ func TestHub_RegisterClient_DifferentRooms(t *testing.T) {
 	client1 := &Client{RoomCode: "ROOM1", PlayerID: "p1", Send: make(chan Message, 10)}
 	client2 := &Client{RoomCode: "ROOM2", PlayerID: "p2", Send: make(chan Message, 10)}
 
-	hub.register <- client1
-	hub.register <- client2
+	hub.Register(client1)
+	hub.Register(client2)
 
 	time.Sleep(10 * time.Millisecond)
 
@@ -190,11 +190,11 @@ func TestHub_UnregisterClient(t *testing.T) {
 	}
 
 	// Register first
-	hub.register <- client
+	hub.Register(client)
 	time.Sleep(10 * time.Millisecond)
 
 	// Now unregister
-	hub.unregister <- client
+	hub.Unregister(client)
 	time.Sleep(10 * time.Millisecond)
 
 	// Verify client's Send channel is closed
@@ -226,9 +226,9 @@ func TestHub_UnregisterClient_RoomCleanup(t *testing.T) {
 	}
 
 	// Register and unregister
-	hub.register <- client
+	hub.Register(client)
 	time.Sleep(10 * time.Millisecond)
-	hub.unregister <- client
+	hub.Unregister(client)
 	time.Sleep(10 * time.Millisecond)
 
 	// Verify room no longer exists
@@ -252,12 +252,12 @@ func TestHub_UnregisterClient_OtherClientsRemain(t *testing.T) {
 	client2 := &Client{RoomCode: "ROOM1", PlayerID: "p2", Send: make(chan Message, 10)}
 
 	// Register both
-	hub.register <- client1
-	hub.register <- client2
+	hub.Register(client1)
+	hub.Register(client2)
 	time.Sleep(10 * time.Millisecond)
 
 	// Unregister only client1
-	hub.unregister <- client1
+	hub.Unregister(client1)
 	time.Sleep(10 * time.Millisecond)
 
 	// Room should still exist with client2
@@ -303,7 +303,7 @@ func TestHub_BroadcastToRoom_SingleClient(t *testing.T) {
 		Send:     make(chan Message, 10),
 	}
 
-	hub.register <- client
+	hub.Register(client)
 	time.Sleep(10 * time.Millisecond)
 
 	// Broadcast a message
@@ -331,9 +331,9 @@ func TestHub_BroadcastToRoom_MultipleClients(t *testing.T) {
 	client2 := &Client{RoomCode: "ROOM1", PlayerID: "p2", Send: make(chan Message, 10)}
 	client3 := &Client{RoomCode: "ROOM1", PlayerID: "p3", Send: make(chan Message, 10)}
 
-	hub.register <- client1
-	hub.register <- client2
-	hub.register <- client3
+	hub.Register(client1)
+	hub.Register(client2)
+	hub.Register(client3)
 	time.Sleep(10 * time.Millisecond)
 
 	// Broadcast
@@ -364,8 +364,8 @@ func TestHub_BroadcastToRoom_OnlyTargetRoom(t *testing.T) {
 	client1 := &Client{RoomCode: "ROOM1", PlayerID: "p1", Send: make(chan Message, 10)}
 	client2 := &Client{RoomCode: "ROOM2", PlayerID: "p2", Send: make(chan Message, 10)}
 
-	hub.register <- client1
-	hub.register <- client2
+	hub.Register(client1)
+	hub.Register(client2)
 	time.Sleep(10 * time.Millisecond)
 
 	// Broadcast only to ROOM1
@@ -422,8 +422,8 @@ func TestHub_BroadcastToRoom_FullSendChannel(t *testing.T) {
 		Send:     make(chan Message, 10),
 	}
 
-	hub.register <- slowClient
-	hub.register <- fastClient
+	hub.Register(slowClient)
+	hub.Register(fastClient)
 	time.Sleep(10 * time.Millisecond)
 
 	// Fill up the slow client's buffer
@@ -476,7 +476,7 @@ func TestHub_ConcurrentRegistrations(t *testing.T) {
 				PlayerID: string(rune('a' + id)),
 				Send:     make(chan Message, 10),
 			}
-			hub.register <- client
+			hub.Register(client)
 			done <- true
 		}(i)
 	}
@@ -519,7 +519,7 @@ func TestHub_ConcurrentBroadcasts(t *testing.T) {
 		Send:     make(chan Message, 100), // Large buffer
 	}
 
-	hub.register <- client
+	hub.Register(client)
 	time.Sleep(10 * time.Millisecond)
 
 	done := make(chan bool, 10)

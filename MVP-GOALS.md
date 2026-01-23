@@ -64,42 +64,42 @@ Testing is the priority because you're unfamiliar with WebSockets. Write tests f
 ### Add gorilla/websocket
 
 - [x] `go get github.com/gorilla/websocket`
-- [ ] Verify import works in ws.go
+- [x] Verify import works in ws.go
 
 ### Handler Implementation (`internal/handlers/ws.go`)
 
 All code should have **learning-mode comments** explaining goroutines, channels, and patterns.
 
-- [ ] Implement HTTP upgrade to WebSocket connection
-- [ ] Extract room code and player ID from query params
-- [ ] Create Client struct with Send channel
-- [ ] Implement `readPump()` goroutine with comments explaining:
+- [x] Implement HTTP upgrade to WebSocket connection
+- [x] Extract room code and player ID from query params
+- [x] Create Client struct with Send channel
+- [x] Implement `readPump()` goroutine with comments explaining:
   - Why it runs in a separate goroutine
   - How it parses JSON messages
   - What happens on read error
-- [ ] Implement `writePump()` goroutine with comments explaining:
+- [x] Implement `writePump()` goroutine with comments explaining:
   - Why writes need their own goroutine
   - The ticker for ping/pong keepalive
   - Non-blocking select pattern
-- [ ] Implement graceful disconnect handling with defer
-- [ ] Register client with Hub on connection
-- [ ] Unregister client with Hub on disconnect
+- [x] Implement graceful disconnect handling with defer
+- [x] Register client with Hub on connection
+- [x] Unregister client with Hub on disconnect
 
 ### Hub Integration
 
-- [ ] Hub.Run() processes register channel correctly
-- [ ] Hub.Run() processes unregister channel correctly
-- [ ] Hub.BroadcastToRoom() sends to all room clients
-- [ ] Client.Send channel receives broadcast messages
+- [x] Hub.Run() processes register channel correctly
+- [x] Hub.Run() processes unregister channel correctly
+- [x] Hub.BroadcastToRoom() sends to all room clients
+- [x] Client.Send channel receives broadcast messages
 
 ### WebSocket Tests (`internal/handlers/ws_test.go`)
 
-- [ ] Test WebSocket upgrade succeeds with valid params
-- [ ] Test upgrade fails without room code
-- [ ] Test upgrade fails without player ID
-- [ ] Test message routing to correct room
-- [ ] Test client disconnect cleanup
-- [ ] Test broadcast reaches all room members
+- [x] Test WebSocket upgrade succeeds with valid params
+- [x] Test upgrade fails without room code
+- [x] Test upgrade fails without player ID
+- [x] Test message routing to correct room
+- [x] Test client disconnect cleanup
+- [x] Test broadcast reaches all room members
 
 ---
 
@@ -315,8 +315,8 @@ func TestWS_Upgrade(t *testing.T) {
 
 | Phase | Status | Blockers |
 |-------|--------|----------|
-| Phase 1: Backend Foundation | Not Started | gorilla/websocket missing |
-| Phase 2: WebSocket Implementation | Not Started | Phase 1 incomplete |
-| Phase 3: Frontend Integration | Not Started | Phase 2 incomplete |
+| Phase 1: Backend Foundation | Complete | None |
+| Phase 2: WebSocket Implementation | Complete | None |
+| Phase 3: Frontend Integration | Not Started | Need to create frontend files |
 | Phase 4: Game Logic | Not Started | Phase 3 incomplete |
 | Phase 5: Deployment | Not Started | Phase 4 incomplete |

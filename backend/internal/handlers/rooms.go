@@ -61,11 +61,6 @@ func (rh *RoomHandler) JoinRoom(c echo.Context) error {
 	})
 }
 
-func (rh *RoomHandler) UpgradeWebSocket(c echo.Context) error {
-	// TODO: Implement WebSocket upgrade
-	return c.String(http.StatusOK, "WebSocket not yet implemented")
-}
-
 func generateRoomCode() string {
 	b := make([]byte, 3)
 	rand.Read(b)
