@@ -22,31 +22,31 @@ A working game where:
 
 ### Dependencies (Do First)
 
-- [ ] Add `gorilla/websocket` to go.mod: `go get github.com/gorilla/websocket`
-- [ ] Run `sqlc generate` in backend directory
-- [ ] Update module path from `yourmodule` to actual path
-- [ ] Run `go mod tidy`
+- [x] Add `gorilla/websocket` to go.mod: `go get github.com/gorilla/websocket`
+- [x] Run `sqlc generate` in backend directory
+- [x] Update module path from `yourmodule` to actual path
+- [x] Run `go mod tidy`
 
 ### Unit Tests (Priority 1 - Before WebSocket)
 
 Testing is the priority because you're unfamiliar with WebSockets. Write tests first to understand the patterns.
 
 **Hub Tests (`internal/game/hub_test.go`):**
-- [ ] Test Hub.Run() starts without error
-- [ ] Test client registration adds to room
-- [ ] Test client unregistration removes from room
-- [ ] Test BroadcastToRoom sends to all clients in room
-- [ ] Test BroadcastToRoom doesn't send to other rooms
-- [ ] Test empty room cleanup after last client leaves
+- [x] Test Hub.Run() starts without error
+- [x] Test client registration adds to room
+- [x] Test client unregistration removes from room
+- [x] Test BroadcastToRoom sends to all clients in room
+- [x] Test BroadcastToRoom doesn't send to other rooms
+- [x] Test empty room cleanup after last client leaves
 
 **Room Tests (`internal/game/room_test.go`):**
-- [ ] Test CreateRoom generates unique codes
-- [ ] Test JoinRoom adds player to room
-- [ ] Test JoinRoom fails for non-existent room
-- [ ] Test GetRoom returns correct room
-- [ ] Test DeleteRoom removes room
-- [ ] Test AdvancePhase cycles LOBBY→NIGHT→DAY→NIGHT
-- [ ] Test AdvancePhase fails from LOBBY without players
+- [x] Test CreateRoom generates unique codes
+- [x] Test JoinRoom adds player to room
+- [x] Test JoinRoom fails for non-existent room
+- [x] Test GetRoom returns correct room
+- [x] Test DeleteRoom removes room
+- [x] Test AdvancePhase cycles LOBBY->NIGHT->DAY->NIGHT
+- [x] Test AdvancePhase fails for non-existent room
 
 ### HTTP Handlers (Verify Existing)
 
@@ -63,7 +63,7 @@ Testing is the priority because you're unfamiliar with WebSockets. Write tests f
 
 ### Add gorilla/websocket
 
-- [ ] `go get github.com/gorilla/websocket`
+- [x] `go get github.com/gorilla/websocket`
 - [ ] Verify import works in ws.go
 
 ### Handler Implementation (`internal/handlers/ws.go`)

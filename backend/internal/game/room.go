@@ -1,10 +1,10 @@
 package game
 
 import (
+	"betrayal-web/internal/models"
+	"github.com/google/uuid"
 	"sync"
 	"time"
-	"yourmodule/internal/models"
-	"github.com/google/uuid"
 )
 
 type RoomManager struct {

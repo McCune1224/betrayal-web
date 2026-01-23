@@ -28,7 +28,7 @@
 | `backend/Dockerfile` | [DONE] | Multi-stage Go build for Railway |
 | `backend/railway.toml` | [DONE] | Railway deployment config |
 | `backend/.env.example` | [DONE] | DATABASE_URL and PORT |
-| `backend/go.mod` | [PARTIAL] | Missing gorilla/websocket dependency |
+| `backend/go.mod` | [DONE] | Module path: betrayal-web, all deps present |
 
 ### Internal Packages
 
@@ -49,7 +49,7 @@
 | `internal/db/migrations/001_init_schema.up.sql` | [DONE] | roles + sessions tables |
 | `internal/db/migrations/001_init_schema.down.sql` | [DONE] | Rollback migration |
 | `internal/db/sql/queries.sql` | [PARTIAL] | Only 2 queries: GetRoleByID, ListRoles |
-| `internal/db/sqlc/` | [MISSING] | **Not generated** - need to run `sqlc generate` |
+| `internal/db/sqlc/` | [DONE] | Generated: db.go, models.go, queries.sql.go |
 | `sqlc.yaml` | [DONE] | sqlc configuration exists |
 
 ### Dependencies (go.mod)
@@ -60,13 +60,13 @@
 | `github.com/jackc/pgx/v5` | [DONE] | Postgres driver |
 | `github.com/joho/godotenv` | [DONE] | Env file loading |
 | `github.com/google/uuid` | [DONE] | UUID generation |
-| `github.com/gorilla/websocket` | [MISSING] | **BLOCKING** - Required for WebSocket, not in go.mod |
+| `github.com/gorilla/websocket` | [DONE] | WebSocket library added |
 
 ### Tests
 
 | Directory | Status | Notes |
 |-----------|--------|-------|
-| `internal/game/*_test.go` | [MISSING] | **No unit tests exist** |
+| `internal/game/*_test.go` | [DONE] | 32 tests: hub_test.go (15), room_test.go (17) |
 | `internal/handlers/*_test.go` | [MISSING] | **No handler tests exist** |
 
 ---
@@ -94,7 +94,7 @@
 
 | File | Status | Notes |
 |------|--------|-------|
-| `frontend/.env.example` | [MISSING] | **No env template** - needs VITE_API_BASE, VITE_WS_BASE |
+| `frontend/.env.example` | [DONE] | VITE_API_BASE and VITE_WS_BASE defined |
 | `frontend/Dockerfile` | [MISSING] | **Cannot deploy frontend** |
 | `svelte.config.js` | [DONE] | adapter-node configured for Railway |
 | `tailwind.config.js` | [DONE] | Tailwind v4 configured |
@@ -118,25 +118,13 @@
 
 These must be resolved before significant progress can be made:
 
-1. **`gorilla/websocket` not in go.mod**
-   - Cannot implement WebSocket handler
-   - Fix: `go get github.com/gorilla/websocket`
-
-2. **No frontend lib files**
+1. **No frontend lib files**
    - Cannot connect frontend to backend
    - Fix: Create stores.js, api.js, ws.js
 
-3. **No backend tests**
-   - Cannot verify logic works correctly
-   - Fix: Create hub_test.go, room_test.go first
-
-4. **sqlc not generated**
-   - Database queries not available in Go code
-   - Fix: Run `sqlc generate` in backend directory
-
-5. **Module path is `yourmodule`**
-   - Will cause issues on deployment
-   - Fix: Update to actual module path in go.mod and imports
+2. **WebSocket handler not implemented**
+   - ws.go is still an empty stub
+   - Fix: Implement WebSocket upgrade and read/write pumps
 
 ---
 

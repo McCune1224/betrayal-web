@@ -1,11 +1,12 @@
 package handlers
 
 import (
-	"net/http"
+	"betrayal-web/internal/game"
 	"crypto/rand"
 	"encoding/hex"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
-	"yourmodule/internal/game"
 )
 
 type RoomHandler struct {
@@ -44,7 +45,7 @@ func (rh *RoomHandler) CreateRoom(c echo.Context) error {
 func (rh *RoomHandler) JoinRoom(c echo.Context) error {
 	code := c.Param("code")
 	var req JoinRoomRequest
-	if err := c.BindJSON(&req); err != nil {
+	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
 
