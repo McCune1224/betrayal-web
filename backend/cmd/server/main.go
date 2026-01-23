@@ -55,6 +55,8 @@ func main() {
 	e.POST("/api/rooms", roomHandler.CreateRoom)
 	e.POST("/api/rooms/:code/join", roomHandler.JoinRoom)
 	e.GET("/ws", roomHandler.UpgradeWebSocket)
+	// DB health check
+	e.GET("/api/health/db", handlers.HealthHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {

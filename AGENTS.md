@@ -19,12 +19,12 @@ Use this file to direct AI agents (Claude, OpenAI, etc.) for efficient project d
 
 ## Project Context
 
-**Name:** Social Deduction Game PoC  
+**Name:** Betrayal
 **Stack:** Go (Echo) + SvelteKit (Bun) + Postgres + Railway  
 **Status:** Early scaffold complete; WebSocket handlers + frontend integration TODO  
 
 **Tech Details:**
-- Backend: Go 1.23, Echo framework, gorilla/websocket, pgx + sqlc
+- Backend: Go 1.25, Echo framework, gorilla/websocket, pgx + sqlc
 - Frontend: SvelteKit, Bun runtime, Skeleton UI (optional), native WebSocket API
 - Database: Postgres 14+, golang-migrate, sqlc code generation
 - Deployment: Railway (separate services for backend, frontend, Postgres)
@@ -429,6 +429,14 @@ func (c *Client) writePump() {
 
 ## Testing Strategy
 
+### REQUIRED: Run and verify tests before any code change or commit
+
+**You MUST always run the project’s full test suite before implementing or committing new features, refactoring, or bugfixes. Tests MUST pass. If tests fail, you MUST NOT proceed—stop and fix the test failures first. This applies to all code (backend, frontend, DB migrations, etc.).**
+
+- For any backend database-dependent tests, ensure DB migrations have been applied and TEST_DATABASE_URL is present (see DEV_DB_SETUP.md).
+- Use `godotenv` to auto-load environment variables in Go test environments, but remember CLI/migration tools need TEST_DATABASE_URL exported in the shell.
+- Do NOT proceed with new tickets until you have a clean test run and all relevant tests pass.
+
 ### Priority Order
 
 Test in this order to build confidence incrementally:
@@ -778,10 +786,41 @@ Context: Hub is a global event loop with register/unregister channels; Broadcast
 
 ## Additional Resources
 
-- **Skeleton UI for SvelteKit:** https://www.skeleton.dev/ (components, theming)
+Backend:
 - **golang-migrate:** https://github.com/golang-migrate/migrate (schema management)
 - **sqlc:** https://sqlc.dev/ (type-safe queries)
 - **gorilla/websocket:** https://github.com/gorilla/websocket (examples in pkg)
+- **labstack/echo:** https://echo.labstack.com/docs
+
+Frontend:
 - **SvelteKit docs:** https://svelte.dev/docs/kit (load, +layout, stores)
-- **Railway docs:** https://docs.railway.app/guides/sveltekit (deployment)
+- **Skeleton UI for SvelteKit:** https://www.skeleton.dev/ (components, theming)
 - **Bun SvelteKit:** https://bun.com/docs/guides/ecosystem/sveltekit (dev & build)
+
+Deployment:
+- **Railway docs:** https://docs.railway.app/guides/sveltekit (deployment)
+
+
+You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
+
+## Available MCP Tools:
+
+### 1. list-sections
+
+Use this FIRST to discover all available documentation sections. Returns a structured list with titles, use_cases, and paths.
+When asked about Svelte or SvelteKit topics, ALWAYS use this tool at the start of the chat to find relevant sections.
+
+### 2. get-documentation
+
+Retrieves full documentation content for specific sections. Accepts single or multiple sections.
+After calling the list-sections tool, you MUST analyze the returned documentation sections (especially the use_cases field) and then use the get-documentation tool to fetch ALL documentation sections that are relevant for the user's task.
+
+### 3. svelte-autofixer
+
+Analyzes Svelte code and returns issues and suggestions.
+You MUST use this tool whenever writing Svelte code before sending it to the user. Keep calling it until no issues or suggestions are returned.
+
+### 4. playground-link
+
+Generates a Svelte Playground link with the provided code.
+After completing the code, ask the user if they want a playground link. Only call this tool after user confirmation and NEVER if code was written to files in their project.

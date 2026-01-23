@@ -9,8 +9,180 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
 )
+
+const createAction = `-- name: CreateAction :one
+INSERT INTO actions (id, player_id, type, target_id, room_code, phase)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, player_id, type, target_id, room_code, phase, timestamp
+`
+
+type CreateActionParams struct {
+	ID       uuid.UUID
+	PlayerID uuid.NullUUID
+	Type     string
+	TargetID uuid.NullUUID
+	RoomCode string
+	Phase    string
+}
+
+func (q *Queries) CreateAction(ctx context.Context, arg CreateActionParams) (Actions, error) {
+	row := q.db.QueryRowContext(ctx, createAction,
+		arg.ID,
+		arg.PlayerID,
+		arg.Type,
+		arg.TargetID,
+		arg.RoomCode,
+		arg.Phase,
+	)
+	var i Actions
+	err := row.Scan(
+		&i.ID,
+		&i.PlayerID,
+		&i.Type,
+		&i.TargetID,
+		&i.RoomCode,
+		&i.Phase,
+		&i.Timestamp,
+	)
+	return i, err
+}
+
+const createPlayer = `-- name: CreatePlayer :one
+INSERT INTO players (id, name, room_code, role_id, is_alive)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, name, room_code, role_id, is_alive, joined_at
+`
+
+type CreatePlayerParams struct {
+	ID       uuid.UUID
+	Name     string
+	RoomCode string
+	RoleID   sql.NullInt32
+	IsAlive  sql.NullBool
+}
+
+func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (Players, error) {
+	row := q.db.QueryRowContext(ctx, createPlayer,
+		arg.ID,
+		arg.Name,
+		arg.RoomCode,
+		arg.RoleID,
+		arg.IsAlive,
+	)
+	var i Players
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.RoomCode,
+		&i.RoleID,
+		&i.IsAlive,
+		&i.JoinedAt,
+	)
+	return i, err
+}
+
+const createRoom = `-- name: CreateRoom :one
+INSERT INTO rooms (code, host_id, phase)
+VALUES ($1, $2, $3)
+RETURNING code, host_id, phase, created_at
+`
+
+type CreateRoomParams struct {
+	Code   string
+	HostID uuid.UUID
+	Phase  string
+}
+
+func (q *Queries) CreateRoom(ctx context.Context, arg CreateRoomParams) (Rooms, error) {
+	row := q.db.QueryRowContext(ctx, createRoom, arg.Code, arg.HostID, arg.Phase)
+	var i Rooms
+	err := row.Scan(
+		&i.Code,
+		&i.HostID,
+		&i.Phase,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getActionsForRoomPhase = `-- name: GetActionsForRoomPhase :many
+SELECT id, player_id, type, target_id, room_code, phase, timestamp
+FROM actions WHERE room_code = $1 AND phase = $2
+`
+
+type GetActionsForRoomPhaseParams struct {
+	RoomCode string
+	Phase    string
+}
+
+func (q *Queries) GetActionsForRoomPhase(ctx context.Context, arg GetActionsForRoomPhaseParams) ([]Actions, error) {
+	rows, err := q.db.QueryContext(ctx, getActionsForRoomPhase, arg.RoomCode, arg.Phase)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Actions
+	for rows.Next() {
+		var i Actions
+		if err := rows.Scan(
+			&i.ID,
+			&i.PlayerID,
+			&i.Type,
+			&i.TargetID,
+			&i.RoomCode,
+			&i.Phase,
+			&i.Timestamp,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPlayersInRoom = `-- name: GetPlayersInRoom :many
+SELECT id, name, room_code, role_id, is_alive, joined_at
+FROM players WHERE room_code = $1
+`
+
+func (q *Queries) GetPlayersInRoom(ctx context.Context, roomCode string) ([]Players, error) {
+	rows, err := q.db.QueryContext(ctx, getPlayersInRoom, roomCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Players
+	for rows.Next() {
+		var i Players
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.RoomCode,
+			&i.RoleID,
+			&i.IsAlive,
+			&i.JoinedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const getRoleByID = `-- name: GetRoleByID :one
 SELECT id, name, alignment, description, perks_json, starting_items_json
@@ -37,6 +209,22 @@ func (q *Queries) GetRoleByID(ctx context.Context, id int32) (GetRoleByIDRow, er
 		&i.Description,
 		&i.PerksJson,
 		&i.StartingItemsJson,
+	)
+	return i, err
+}
+
+const getRoomByCode = `-- name: GetRoomByCode :one
+SELECT code, host_id, phase, created_at FROM rooms WHERE code = $1
+`
+
+func (q *Queries) GetRoomByCode(ctx context.Context, code string) (Rooms, error) {
+	row := q.db.QueryRowContext(ctx, getRoomByCode, code)
+	var i Rooms
+	err := row.Scan(
+		&i.Code,
+		&i.HostID,
+		&i.Phase,
+		&i.CreatedAt,
 	)
 	return i, err
 }

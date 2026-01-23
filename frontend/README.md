@@ -15,7 +15,7 @@ To recreate this project with the same configuration:
 
 ```sh
 # recreate this project
-bun x sv create --template minimal --types ts --add tailwindcss="plugins:typography,forms" sveltekit-adapter="adapter:node" --install bun frontend
+bun x sv create --template minimal --types ts --add tailwindcss="plugins:typography,forms" mcp="ide:opencode+setup:local" --install bun frontend
 ```
 
 ## Developing

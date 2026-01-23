@@ -11,6 +11,25 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+type Actions struct {
+	ID        uuid.UUID
+	PlayerID  uuid.NullUUID
+	Type      string
+	TargetID  uuid.NullUUID
+	RoomCode  string
+	Phase     string
+	Timestamp sql.NullTime
+}
+
+type Players struct {
+	ID       uuid.UUID
+	Name     string
+	RoomCode string
+	RoleID   sql.NullInt32
+	IsAlive  sql.NullBool
+	JoinedAt sql.NullTime
+}
+
 type Roles struct {
 	ID                int32
 	Name              string
@@ -19,6 +38,13 @@ type Roles struct {
 	PerksJson         pqtype.NullRawMessage
 	StartingItemsJson pqtype.NullRawMessage
 	CreatedAt         sql.NullTime
+}
+
+type Rooms struct {
+	Code      string
+	HostID    uuid.UUID
+	Phase     string
+	CreatedAt sql.NullTime
 }
 
 type Sessions struct {

@@ -54,6 +54,17 @@ dev-backend:
 
 dev-frontend:
 	cd frontend && bun run dev
+# =============================================================================
+# Pretty Testing
+# =============================================================================
+
+test-pretty:
+	@which gotestsum >/dev/null || (echo "Please install gotestsum with 'go install gotest.tools/gotestsum@latest'" && exit 1)
+	cd backend && gotestsum --format=short -- -v ./...
+
+test-pretty-verbose:
+	@which gotestsum >/dev/null || (echo "Please install gotestsum with 'go install gotest.tools/gotestsum@latest'" && exit 1)
+	cd backend && gotestsum --format=short-verbose -- -v ./...
 
 # =============================================================================
 # Testing
@@ -98,8 +109,18 @@ db-down:
 	docker stop social-deduction-postgres || true
 	docker rm social-deduction-postgres || true
 
-db-migrate:
-	cd backend && migrate -path internal/db/migrations -database "postgres://postgres:postgres@localhost:5432/social_deduction?sslmode=disable" up
+# Run migrations for dev/prod DB as specified in .env
+migrate-up:
+	cd backend && migrate -path internal/db/migrations -database $(shell cat backend/.env | grep DATABASE_URL | cut -d '=' -f2) up
+
+# Run migrations for the test DB as specified in .env
+migrate-test:
+	cd backend && migrate -path internal/db/migrations -database $(shell cat backend/.env | grep TEST_DATABASE_URL | cut -d '=' -f2) up
+
+# Backward compatible (still hardcoded for Docker local dev DB) -- recommend using migrate-up/migrate-test
+# db-migrate:
+# 	cd backend && migrate -path internal/db/migrations -database "postgres://postgres:postgres@localhost:5432/social_deduction?sslmode=disable" up
+
 
 db-migrate-down:
 	cd backend && migrate -path internal/db/migrations -database "postgres://postgres:postgres@localhost:5432/social_deduction?sslmode=disable" down
