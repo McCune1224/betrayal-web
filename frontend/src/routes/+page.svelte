@@ -1,7 +1,9 @@
-<section class="">
-  <h1>Welcome to SvelteKit</h1>
-  <p>
-    Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the
-    documentation
-  </p>
-</section>
+<script lang="ts"></script>
+
+<div class="bg-primary-50-950">
+  <p>Some content here,....</p>
+</div>
+
+<div>
+  <p>Some other content here...</p>
+</div>
