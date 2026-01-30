@@ -1,7 +1,7 @@
 # MVP Goals & Checklist
 
 > Track progress toward minimum viable product.
-> Update checkboxes as work completes.
+> Update checkbo es as work completes.
 
 ---
 
@@ -22,37 +22,36 @@ A working game where:
 
 ### Dependencies (Do First)
 
-- [x] Add `gorilla/websocket` to go.mod: `go get github.com/gorilla/websocket`
-- [x] Run `sqlc generate` in backend directory
-- [x] Update module path from `yourmodule` to actual path
-- [x] Run `go mod tidy`
+- [ ] Add `gorilla/websocket` to go.mod: `go get github.com/gorilla/websocket`
+- [ ] Run `sqlc generate` in backend directory
+- [ ] Run `go mod tidy`
 
 ### Unit Tests (Priority 1 - Before WebSocket)
 
 Testing is the priority because you're unfamiliar with WebSockets. Write tests first to understand the patterns.
 
 **Hub Tests (`internal/game/hub_test.go`):**
-- [x] Test Hub.Run() starts without error
-- [x] Test client registration adds to room
-- [x] Test client unregistration removes from room
-- [x] Test BroadcastToRoom sends to all clients in room
-- [x] Test BroadcastToRoom doesn't send to other rooms
-- [x] Test empty room cleanup after last client leaves
+- [ ] Test Hub.Run() starts without error
+- [ ] Test client registration adds to room
+- [ ] Test client unregistration removes from room
+- [ ] Test BroadcastToRoom sends to all clients in room
+- [ ] Test BroadcastToRoom doesn't send to other rooms
+- [ ] Test empty room cleanup after last client leaves
 
 **Room Tests (`internal/game/room_test.go`):**
-- [x] Test CreateRoom generates unique codes
-- [x] Test JoinRoom adds player to room
-- [x] Test JoinRoom fails for non-existent room
-- [x] Test GetRoom returns correct room
-- [x] Test DeleteRoom removes room
-- [x] Test AdvancePhase cycles LOBBY->NIGHT->DAY->NIGHT
-- [x] Test AdvancePhase fails for non-existent room
+- [ ] Test CreateRoom generates unique codes
+- [ ] Test JoinRoom adds player to room
+- [ ] Test JoinRoom fails for non-existent room
+- [ ] Test GetRoom returns correct room
+- [ ] Test DeleteRoom removes room
+- [ ] Test AdvancePhase cycles LOBBY->NIGHT->DAY->NIGHT
+- [ ] Test AdvancePhase fails for non-existent room
 
-### HTTP Handlers (Verify Existing)
+### HTTP Handlers (Verify E isting)
 
 - [ ] Test `POST /api/rooms` creates room and returns code
 - [ ] Test `POST /api/rooms/:code/join` returns playerID + phase
-- [ ] Test join fails for non-existent room code
+- [ ] Test join fails for non-e istent room code
 - [ ] Test join fails for invalid request body
 
 ---
@@ -63,43 +62,43 @@ Testing is the priority because you're unfamiliar with WebSockets. Write tests f
 
 ### Add gorilla/websocket
 
-- [x] `go get github.com/gorilla/websocket`
-- [x] Verify import works in ws.go
+- [ ] `go get github.com/gorilla/websocket`
+- [ ] Verify import works in ws.go
 
 ### Handler Implementation (`internal/handlers/ws.go`)
 
-All code should have **learning-mode comments** explaining goroutines, channels, and patterns.
+All code should have **learning-mode comments** e plaining goroutines, channels, and patterns.
 
-- [x] Implement HTTP upgrade to WebSocket connection
-- [x] Extract room code and player ID from query params
-- [x] Create Client struct with Send channel
-- [x] Implement `readPump()` goroutine with comments explaining:
+- [ ] Implement HTTP upgrade to WebSocket connection
+- [ ] Extract room code and player ID from query params
+- [ ] Create Client struct with Send channel
+- [ ] Implement `readPump()` goroutine with comments explaining:
   - Why it runs in a separate goroutine
   - How it parses JSON messages
   - What happens on read error
-- [x] Implement `writePump()` goroutine with comments explaining:
+- [ ] Implement `writePump()` goroutine with comments explaining:
   - Why writes need their own goroutine
   - The ticker for ping/pong keepalive
   - Non-blocking select pattern
-- [x] Implement graceful disconnect handling with defer
-- [x] Register client with Hub on connection
-- [x] Unregister client with Hub on disconnect
+- [ ] Implement graceful disconnect handling with defer
+- [ ] Register client with Hub on connection
+- [ ] Unregister client with Hub on disconnect
 
 ### Hub Integration
 
-- [x] Hub.Run() processes register channel correctly
-- [x] Hub.Run() processes unregister channel correctly
-- [x] Hub.BroadcastToRoom() sends to all room clients
-- [x] Client.Send channel receives broadcast messages
+- [ ] Hub.Run() processes register channel correctly
+- [ ] Hub.Run() processes unregister channel correctly
+- [ ] Hub.BroadcastToRoom() sends to all room clients
+- [ ] Client.Send channel receives broadcast messages
 
 ### WebSocket Tests (`internal/handlers/ws_test.go`)
 
-- [x] Test WebSocket upgrade succeeds with valid params
-- [x] Test upgrade fails without room code
-- [x] Test upgrade fails without player ID
-- [x] Test message routing to correct room
-- [x] Test client disconnect cleanup
-- [x] Test broadcast reaches all room members
+- [ ] Test WebSocket upgrade succeeds with valid params
+- [ ] Test upgrade fails without room code
+- [ ] Test upgrade fails without player ID
+- [ ] Test message routing to correct room
+- [ ] Test client disconnect cleanup
+- [ ] Test broadcast reaches all room members
 
 ---
 
@@ -165,7 +164,7 @@ All code should have **learning-mode comments** explaining goroutines, channels,
 - [ ] Roles seeded in database
 - [ ] `StartGame()` assigns random roles to players
 - [ ] Player can see their own role
-- [ ] Roles hidden from other players (except host)
+- [ ] Roles hidden from other players (e cept host)
 
 ### Phase Management
 
@@ -195,13 +194,13 @@ All code should have **learning-mode comments** explaining goroutines, channels,
 
 ### Documentation
 
-- [ ] Code comments in ws.go explain all patterns
-- [ ] Code comments in hub.go explain channel usage
+- [ ] Code comments in ws.go e plain all patterns
+- [ ] Code comments in hub.go e plain channel usage
 - [ ] README.md with project overview (optional)
 
 ### Deployment Files
 
-- [ ] `frontend/.env.example` exists
+- [ ] `frontend/.env.e ample` exists
 - [ ] `frontend/Dockerfile` created
 - [ ] Backend Dockerfile verified working
 - [ ] Railway deployment tested end-to-end
@@ -241,14 +240,14 @@ func TestHub_RegisterClient(t *testing.T) {
 
     // Assert client is in the room
     hub.mu.Lock()
-    clients, exists := hub.rooms["TEST01"]
+    clients, e ists := hub.rooms["TEST01"]
     hub.mu.Unlock()
 
-    if !exists {
-        t.Fatal("room should exist after registration")
+    if !e ists {
+        t.Fatal("room should e ist after registration")
     }
     if len(clients) != 1 {
-        t.Fatalf("expected 1 client, got %d", len(clients))
+        t.Fatalf("e pected 1 client, got %d", len(clients))
     }
 }
 ```
@@ -262,7 +261,7 @@ func TestRoomManager_CreateRoom(t *testing.T) {
     code := rm.CreateRoom("host-123")
 
     if code == "" {
-        t.Fatal("expected room code, got empty string")
+        t.Fatal("e pected room code, got empty string")
     }
 
     room, err := rm.GetRoom(code)
@@ -270,10 +269,10 @@ func TestRoomManager_CreateRoom(t *testing.T) {
         t.Fatalf("GetRoom failed: %v", err)
     }
     if room.HostID != "host-123" {
-        t.Errorf("expected hostID 'host-123', got '%s'", room.HostID)
+        t.Errorf("e pected hostID 'host-123', got '%s'", room.HostID)
     }
     if room.Phase != "LOBBY" {
-        t.Errorf("expected phase 'LOBBY', got '%s'", room.Phase)
+        t.Errorf("e pected phase 'LOBBY', got '%s'", room.Phase)
     }
 }
 ```
@@ -294,7 +293,7 @@ func TestWS_Upgrade(t *testing.T) {
     defer server.Close()
 
     // Convert HTTP URL to WebSocket URL
-    wsURL := "ws" + strings.TrimPrefix(server.URL, "http") + 
+    wsURL := "ws" + strings.TrimPrefi (server.URL, "http") + 
              "/ws?room=TEST&player=player-1"
 
     // Connect WebSocket client

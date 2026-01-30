@@ -1,11 +1,17 @@
 package game
 
 import (
-	"betrayal-web/internal/models"
-	"github.com/google/uuid"
+	"errors"
+	"math/rand"
 	"sync"
 	"time"
+
+	"backend/internal/models"
+	"github.com/google/uuid"
 )
+
+var ErrRoomNotFound = errors.New("room not found")
+var ErrPlayerNotFound = errors.New("player not found")
 
 type RoomManager struct {
 	mu    sync.RWMutex
@@ -18,71 +24,58 @@ func NewRoomManager() *RoomManager {
 	}
 }
 
-func (rm *RoomManager) CreateRoom(code, hostID string) *models.Room {
+func (rm *RoomManager) CreateRoom(hostID string) string {
 	rm.mu.Lock()
 	defer rm.mu.Unlock()
 
+	code := generateRoomCode()
 	room := &models.Room{
+		ID:        uuid.New(),
 		Code:      code,
 		HostID:    hostID,
 		Phase:     "LOBBY",
-		Players:   make(map[string]*models.Player),
-		Actions:   []models.Action{},
 		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
+
 	rm.rooms[code] = room
-	return room
+	return code
 }
 
-func (rm *RoomManager) GetRoom(code string) *models.Room {
+func (rm *RoomManager) GetRoom(code string) (*models.Room, error) {
 	rm.mu.RLock()
 	defer rm.mu.RUnlock()
-	return rm.rooms[code]
+
+	room, exists := rm.rooms[code]
+	if !exists {
+		return nil, ErrRoomNotFound
+	}
+	return room, nil
 }
 
-func (rm *RoomManager) DeleteRoom(code string) {
-	rm.mu.Lock()
-	defer rm.mu.Unlock()
-	delete(rm.rooms, code)
-}
-
-func (rm *RoomManager) JoinRoom(code, playerName string) (*models.Room, *models.Player, error) {
+func (rm *RoomManager) JoinRoom(code string, playerName string) (string, error) {
 	rm.mu.Lock()
 	defer rm.mu.Unlock()
 
-	room := rm.rooms[code]
-	if room == nil {
-		return nil, nil, ErrRoomNotFound
+	room, exists := rm.rooms[code]
+	if !exists {
+		return "", ErrRoomNotFound
 	}
 
 	playerID := uuid.New().String()
-	player := &models.Player{
-		ID:       playerID,
-		Name:     playerName,
-		IsAlive:  true,
-		JoinedAt: time.Now(),
-	}
-	room.Players[playerID] = player
+	_ = room
+	_ = playerID
+	_ = playerName
 
-	return room, player, nil
+	return playerID, nil
 }
 
-func (rm *RoomManager) AdvancePhase(code string) error {
-	rm.mu.Lock()
-	defer rm.mu.Unlock()
-
-	room := rm.rooms[code]
-	if room == nil {
-		return ErrRoomNotFound
+func generateRoomCode() string {
+	const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	code := make([]byte, 6)
+	rand.Seed(time.Now().UnixNano())
+	for i := range code {
+		code[i] = letters[rand.Intn(len(letters))]
 	}
-
-	switch room.Phase {
-	case "LOBBY":
-		room.Phase = "NIGHT"
-	case "NIGHT":
-		room.Phase = "DAY"
-	case "DAY":
-		room.Phase = "NIGHT"
-	}
-	return nil
+	return string(code)
 }

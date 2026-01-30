@@ -5,51 +5,41 @@
 package sqlc
 
 import (
-	"database/sql"
-
-	"github.com/google/uuid"
-	"github.com/sqlc-dev/pqtype"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Actions struct {
-	ID        uuid.UUID
-	PlayerID  uuid.NullUUID
-	Type      string
-	TargetID  uuid.NullUUID
-	RoomCode  string
-	Phase     string
-	Timestamp sql.NullTime
+	ID         pgtype.UUID
+	RoomID     pgtype.UUID
+	PlayerID   pgtype.UUID
+	ActionType string
+	TargetID   pgtype.UUID
+	Phase      string
+	CreatedAt  pgtype.Timestamptz
 }
 
 type Players struct {
-	ID       uuid.UUID
+	ID       pgtype.UUID
+	RoomID   pgtype.UUID
 	Name     string
-	RoomCode string
-	RoleID   sql.NullInt32
-	IsAlive  sql.NullBool
-	JoinedAt sql.NullTime
+	RoleID   pgtype.Int4
+	IsAlive  pgtype.Bool
+	JoinedAt pgtype.Timestamptz
 }
 
 type Roles struct {
-	ID                int32
-	Name              string
-	Alignment         sql.NullString
-	Description       sql.NullString
-	PerksJson         pqtype.NullRawMessage
-	StartingItemsJson pqtype.NullRawMessage
-	CreatedAt         sql.NullTime
+	ID          int32
+	Name        string
+	Description pgtype.Text
+	Team        string
+	CreatedAt   pgtype.Timestamptz
 }
 
 type Rooms struct {
+	ID        pgtype.UUID
 	Code      string
-	HostID    uuid.UUID
+	HostID    string
 	Phase     string
-	CreatedAt sql.NullTime
-}
-
-type Sessions struct {
-	ID         uuid.UUID
-	PlayerName string
-	CreatedAt  sql.NullTime
-	LastSeen   sql.NullTime
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
 }

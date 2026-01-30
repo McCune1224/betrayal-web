@@ -1,6 +1,27 @@
 # AI Agent Guidelines for Social Deduction Game PoC
 
-> **IMPORTANT:** This file describes the TARGET architecture, not current reality.
+---
+
+## Agent Skills Usage Policy (AI/human guidance)
+
+This project uses [OpenCode Agent Skills](https://opencode.ai/docs/skills) for reusable, role-specific, step-by-step knowledge. These are stored in `.opencode/skills/` as SKILL.md files. **Any agent (AI or developer) MUST check and follow relevant skills before implementing, refactoring, or reviewing code, or onboarding others.**
+
+### What are skills?
+- Each is a self-contained markdown file describing a workflow, best practice, or checklist for part of the stack (e.g., WebSocket Go handler, SvelteKit UI, DB migration, CI/CD, error handling, game logic flow, etc).
+- Skills explain **how to do something correctly in this repo**, referencing actual component structure, dependencies, and conventions.
+
+### When/how to use them
+- **Before starting work, always check which skills may be relevant.**
+- You can read skills manually or use the agent’s `skill` loading feature to auto-apply them before planning or coding.
+- When requesting agent or human help, always mention which skills were referenced (or attach their titles to your PR/issue).
+- If you’re unsure which skills to use, list the available skills in `.opencode/skills/` and ask a maintainer or agent.
+
+### Permissions
+- All skills are MIT-licensed; internal convention is that skill usage is **always allowed** for all contributors and AI participants.
+- The root `opencode.json` config (see below) must specify (or default to) `{ "skill": { "*": "allow" } }` to enable access for all.
+
+---
+
 > Check `CURRENT-STATE.md` for what actually exists before assuming code is present.
 
 Use this file to direct AI agents (Claude, OpenAI, etc.) for efficient project development. Copy-paste sections into your editor or AI tool as needed.

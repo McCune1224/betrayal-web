@@ -1,74 +1,59 @@
 package handlers
 
 import (
-	"betrayal-web/internal/game"
-	"crypto/rand"
-	"encoding/hex"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"backend/internal/game"
+	"github.com/labstack/echo/v5"
 )
 
 type RoomHandler struct {
 	Hub *game.Hub
 }
 
-type CreateRoomRequest struct{}
+func (h *RoomHandler) CreateRoom(c *echo.Context) error {
+	type request struct {
+		HostName string `json:"hostName"`
+	}
 
-type CreateRoomResponse struct {
-	Code string `json:"code"`
-	Host string `json:"host"`
-}
-
-type JoinRoomRequest struct {
-	Name string `json:"name"`
-}
-
-type JoinRoomResponse struct {
-	Code     string `json:"code"`
-	PlayerID string `json:"player_id"`
-	Phase    string `json:"phase"`
-}
-
-func (rh *RoomHandler) CreateRoom(c echo.Context) error {
-	code := generateRoomCode()
-	hostID := generatePlayerID()
-
-	rh.Hub.GetRoomManager().CreateRoom(code, hostID)
-
-	return c.JSON(http.StatusOK, CreateRoomResponse{
-		Code: code,
-		Host: hostID,
-	})
-}
-
-func (rh *RoomHandler) JoinRoom(c echo.Context) error {
-	code := c.Param("code")
-	var req JoinRoomRequest
+	var req request
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
 
-	room, player, err := rh.Hub.GetRoomManager().JoinRoom(code, req.Name)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
-	}
+	rm := h.Hub.GetRoomManager()
+	roomCode := rm.CreateRoom("host-id")
 
-	return c.JSON(http.StatusOK, JoinRoomResponse{
-		Code:     code,
-		PlayerID: player.ID,
-		Phase:    room.Phase,
+	return c.JSON(http.StatusCreated, map[string]string{
+		"roomCode": roomCode,
+		"hostId":   "host-id",
 	})
 }
 
-func generateRoomCode() string {
-	b := make([]byte, 3)
-	rand.Read(b)
-	return hex.EncodeToString(b)
+func (h *RoomHandler) JoinRoom(c *echo.Context) error {
+	roomCode := c.Param("code")
+
+	type request struct {
+		PlayerName string `json:"playerName"`
+	}
+
+	var req request
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+
+	rm := h.Hub.GetRoomManager()
+	playerID, err := rm.JoinRoom(roomCode, req.PlayerName)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "room not found"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"playerId": playerID,
+		"phase":    "LOBBY",
+	})
 }
 
-func generatePlayerID() string {
-	b := make([]byte, 8)
-	rand.Read(b)
-	return hex.EncodeToString(b)
+func (h *RoomHandler) UpgradeWebSocket(c *echo.Context) error {
+	return c.JSON(http.StatusNotImplemented, map[string]string{"error": "websocket not yet implemented"})
 }

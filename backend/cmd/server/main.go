@@ -7,12 +7,12 @@ import (
 	"os"
 	"time"
 
-	"betrayal-web/internal"
-	"betrayal-web/internal/game"
-	"betrayal-web/internal/handlers"
+	"backend/internal/db"
+	"backend/internal/game"
+	"backend/internal/handlers"
 	"github.com/joho/godotenv"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
 )
 
 func main() {
@@ -26,19 +26,18 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := internal.InitDB(ctx, dbURL); err != nil {
+	if err := db.InitDB(ctx, dbURL); err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		internal.CloseDB(ctx)
+		db.CloseDB(ctx)
 	}()
 
 	e := echo.New()
 
 	// Middleware
-	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
@@ -64,5 +63,7 @@ func main() {
 	}
 
 	log.Printf("Server running on :%s\n", port)
-	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", port)))
+	if err := e.Start(fmt.Sprintf(":%s", port)); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }

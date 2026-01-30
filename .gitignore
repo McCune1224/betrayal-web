@@ -1,0 +1,105 @@
+# .gitignore for Betrayal Monorepo (Go, SvelteKit, Bun, Automation)
+#
+# Covers: Go backend, SvelteKit+Bun frontend, automated tooling, and general system files
+# See: /frontend/.gitignore, /ai-backend/.gitignore, /plan-file for rationale
+#
+
+##############
+# ENV/SECRETS
+##############
+.env
+.env.*
+!.env.example
+!.env.test
+backend/.env
+backend/.env.*
+!backend/.env.example
+!backend/.env.test
+ai-backend/.env
+ai-backend/.env.*
+!ai-backend/.env.example
+!ai-backend/.env.test
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+!frontend/.env.test
+
+##############
+# EDITOR / OS JUNK
+##############
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.history
+*.swp
+*.bak
+
+##############
+# LOG / TEMP FILES
+##############
+*.log
+*.tmp
+/log/
+/tmp/
+coverage/
+.coverage
+
+##############
+# NODE/NPM/BUN/SVELTEKIT FRONTEND
+##############
+node_modules/
+frontend/node_modules/
+.output
+.svelte-kit
+.vercel
+.netlify
+.wrangler
+/build
+/dist
+.bun/
+frontend/.output
+frontend/.svelte-kit
+frontend/.vercel
+frontend/.netlify
+frontend/.wrangler
+frontend/build
+frontend/dist
+frontend/.bun
+bun.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+# Allow package.json always
+!package.json
+!frontend/package.json
+
+##############
+# GO BACKEND / SQLC
+##############
+*.exe
+*.out
+*.test
+*.prof
+*.cover
+backend/vendor/
+ai-backend/vendor/
+backend/internal/db/sqlc/
+ai-backend/internal/db/sqlc/
+backend/.sqllsrc.json
+ai-backend/.sqllsrc.json
+sqlc-dev.db
+backend/sqlc-dev.db
+ai-backend/sqlc-dev.db
+
+##############
+# AUTOMATION / TOOLS (.opencode)
+##############
+.opencode/node_modules/
+.opencode/package.json
+.opencode/bun.lock
+
+# Ignore own .gitignore only in automation dir - not global!
+# .opencode/.gitignore
+
+# END OF .gitignore
