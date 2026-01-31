@@ -26,7 +26,7 @@ export {
 	connection,
 	messages,
 	log,
-	isHost,
+	getIsHost,
 	setPlayer,
 	clearPlayer,
 	loadPlayerFromStorage,
@@ -43,7 +43,7 @@ export {
 	clearMessages,
 	clearLog,
 	setRoomPhase
-} from './stores';
+} from './stores.svelte';
 
 // Re-export API functions
 export { createRoom, joinRoom, healthCheck } from './api';

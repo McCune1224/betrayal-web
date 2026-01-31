@@ -15,7 +15,7 @@ import {
 	removePlayerFromRoom,
 	setRoomPhase,
 	addSystemMessage
-} from './stores';
+} from './stores.svelte';
 
 const WS_BASE = import.meta.env.VITE_WS_BASE || 'ws://localhost:8080';
 

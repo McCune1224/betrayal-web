@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { createRoom, joinRoom } from '$lib/api';
-  import { setPlayer, setRoom } from '$lib/stores';
+  import { setPlayer, setRoom } from '$lib/stores.svelte';
   
   let activeTab = $state<'join' | 'create'>("join");
   let username = $state<string>("");

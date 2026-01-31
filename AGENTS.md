@@ -280,14 +280,34 @@ if err := someFunc(); err != nil {
 }
 ```
 
-### Svelte Store Pattern
-```js
-import { player, room, isHost } from '$lib/stores';
+### Svelte 5 Runes Pattern
 
-// Subscribe in component
-$: console.log($room.phase);  // reactive
-room.update(r => ({ ...r, phase: 'DAY' }));  // update
+This project uses **Svelte 5 with runes**. Do NOT use Svelte 4 store patterns (`$:` syntax, `writable()` stores).
+
+```typescript
+// In .svelte.ts file (stores.svelte.ts)
+export const player = $state<Player>({
+  id: null,
+  name: '',
+  isHost: false
+});
+
+// In .svelte component
+<script>
+  import { player, getIsHost } from '$lib/stores.svelte';
+  
+  // For derived values, create local derived state
+  let isHost = $derived(getIsHost());
+</script>
+
+<div>Welcome {player.name}</div>
+{#if isHost}<span>Host</span>{/if}
 ```
+
+⚠️ **CRITICAL RULES** - See detailed section below:
+- Files using `$state`, `$derived`, `$effect` MUST use `.svelte.ts` extension
+- Cannot export `$derived` values directly
+- Cannot export `$state` primitives that get reassigned
 
 ### Environment Variables
 **Backend:** `internal/` reads `os.Getenv("DATABASE_URL")`, `os.Getenv("PORT")`  
@@ -445,6 +465,132 @@ func (c *Client) writePump() {
     }
 }
 ```
+
+---
+
+## Svelte 5 Runes Best Practices
+
+### Overview
+
+This project uses **Svelte 5 with runes** (`$state`, `$derived`, `$effect`, etc.). These are fundamentally different from Svelte 4's reactive statements (`$:`) and stores (`writable()`, `readable()`). Understanding these differences is critical to avoid runtime errors.
+
+### File Extensions Matter
+
+**CRITICAL**: Files using runes MUST have the correct extension:
+
+- ✅ **`.svelte.ts`** or **`.svelte.js`** - For files using `$state`, `$derived`, `$effect`
+- ✅ **`.svelte`** - For Svelte components
+- ❌ **`.ts`** or **`.js`** - Regular TypeScript/JavaScript files CANNOT use runes
+
+**Example:**
+```typescript
+// ✅ CORRECT: stores.svelte.ts
+export const player = $state({ name: '', id: null });
+
+// ❌ WRONG: stores.ts would cause "rune_outside_svelte" error
+```
+
+### State Export Rules
+
+You can declare state in `.svelte.ts` files, but **export restrictions apply**:
+
+#### ❌ Cannot Export These:
+
+1. **`$derived` values directly:**
+```typescript
+// ❌ WRONG - Will throw "derived_invalid_export" error
+export const isHost = $derived(Boolean(player.id && room.hostId && player.id === room.hostId));
+
+// ✅ CORRECT - Export getter function instead
+export function getIsHost(): boolean {
+  return Boolean(player.id && room.hostId && player.id === room.hostId);
+}
+```
+
+2. **`$state` primitives that get reassigned:**
+```typescript
+// ❌ WRONG - Breaks reactivity in importing modules
+export let count = $state(0);
+
+// ✅ CORRECT - Export getter/setter functions
+let count = $state(0);
+export function getCount() { return count; }
+export function increment() { count += 1; }
+```
+
+#### ✅ Can Export These:
+
+1. **`$state` objects** (mutate properties, don't reassign):
+```typescript
+// ✅ CORRECT - Export object, mutate properties
+export const player = $state({ name: '', id: null });
+player.name = 'New Name'; // This works!
+
+// ❌ AVOID - Reassigning the object breaks reactivity
+player = { name: 'New Name', id: '123' }; // Don't do this
+```
+
+2. **Getter functions:**
+```typescript
+// ✅ CORRECT - Export getter for derived/computed values
+export function getIsHost(): boolean {
+  return Boolean(player.id && room.hostId && player.id === room.hostId);
+}
+```
+
+### Usage in Components
+
+Import state and use `$derived` locally for computed values:
+
+```svelte
+<script lang="ts">
+  import { player, room, getIsHost } from '$lib/stores.svelte';
+  
+  // Create local derived state in component
+  let isHost = $derived(getIsHost());
+  let playerCount = $derived(room.players.length + 1);
+</script>
+
+<div>
+  <p>Welcome {player.name}</p>
+  {#if isHost}
+    <span class="badge">Host</span>
+  {/if}
+  <p>Players: {playerCount}</p>
+</div>
+```
+
+### Why These Restrictions Exist
+
+The Svelte compiler transforms `$state` references by wrapping them in `$.get()` and `$.set()` calls. The compiler operates on **one file at a time**. If another file imports a directly reassigned `$state` variable, the compiler doesn't know to apply these transformations in the importing module, leading to:
+
+- Stale values
+- Broken reactivity
+- Runtime errors
+
+### Pre-Commit Checklist
+
+Before committing frontend changes:
+
+1. ✅ Run `bun run check` - Must pass with 0 errors
+2. ✅ Verify all files using runes have `.svelte.ts` extension
+3. ✅ Verify no `$derived` values are exported directly
+4. ✅ Verify no `$state` primitives are exported (use objects or getters)
+5. ✅ Test the application manually in browser
+
+### Common Errors and Solutions
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `rune_outside_svelte` | Using `$state` in `.ts` file | Rename to `.svelte.ts` |
+| `derived_invalid_export` | Exporting `$derived` value | Use getter function instead |
+| `state_export_reassigned` | Exporting reassigned `$state` | Export object or use getter |
+
+### Resources
+
+- **Official Svelte Docs**: https://svelte.dev/docs/svelte/what-are-runes
+- **Internal Skill**: Check `sveltekit-ui-patterns` skill for detailed patterns
+- **Context7 MCP**: Use Context7 queries for up-to-date Svelte documentation when planning features
 
 ---
 
@@ -802,6 +948,90 @@ Requirements:
 
 Context: Hub is a global event loop with register/unregister channels; BroadcastToRoom sends Message struct to all clients in a room.
 ```
+
+---
+
+## Context7 MCP Usage (Required for Documentation Accuracy)
+
+### What is Context7?
+
+Context7 is an MCP (Model Context Protocol) server that provides access to up-to-date, authoritative documentation from official sources (Svelte, SvelteKit, Go, etc.). **You MUST use Context7 when working with frameworks and libraries to ensure documentation accuracy.**
+
+### When to Use Context7
+
+**ALWAYS use Context7 when:**
+- Planning new features that use Svelte/SvelteKit patterns
+- Implementing unfamiliar APIs or framework features
+- Debugging errors related to framework usage
+- Writing code that uses runes, stores, or lifecycle hooks
+- Working with WebSocket patterns, database queries, or any external library
+
+**Example scenarios:**
+- Implementing Svelte 5 runes patterns
+- Setting up SvelteKit routing or data loading
+- Using Go WebSocket libraries (gorilla/websocket)
+- Working with sqlc or database migrations
+
+### How to Use Context7
+
+**Step 1: Resolve the library ID**
+```
+Use context7_resolve-library-id to find the correct Context7-compatible library ID:
+- Library name: "svelte" for Svelte docs
+- Library name: "sveltekit" for SvelteKit docs  
+- Library name: "go" for Go standard library
+- Query: Describe what you're trying to do
+```
+
+**Step 2: Query the documentation**
+```
+Use context7_query-docs with the library ID from Step 1:
+- Library ID: e.g., "/sveltejs/svelte"
+- Query: Be specific about patterns, errors, or features
+```
+
+**Step 3: Apply the findings**
+- Review code snippets and explanations from official docs
+- Cross-reference with project conventions in AGENTS.md
+- Implement following official best practices
+
+### Example Workflow
+
+When implementing Svelte 5 runes state sharing:
+
+1. **Resolve**: `context7_resolve-library-id` with "svelte" and query about state exports
+2. **Query**: `context7_query-docs` with library ID and query about "$state module exports restrictions"
+3. **Implement**: Based on official docs showing correct patterns (export objects or getter functions, not primitives)
+
+### Critical Rules
+
+✅ **DO:**
+- Use Context7 for ANY framework-related questions
+- Query specific error messages or patterns
+- Reference official code snippets from docs
+- Combine with AGENTS.md project conventions
+
+❌ **DON'T:**
+- Assume you know the correct pattern without checking docs
+- Use outdated Svelte 4 patterns in Svelte 5 code
+- Guess at API behavior for unfamiliar libraries
+- Ignore Context7 findings that contradict your assumptions
+
+### Available Libraries
+
+Common libraries available via Context7:
+- **Svelte**: `/sveltejs/svelte` - Svelte 5 runes, components, reactivity
+- **SvelteKit**: `/sveltejs/kit` - Routing, data loading, server functions
+- **Go**: `/golang/go` - Standard library patterns
+- **Echo**: `/labstack/echo` - Web framework (if available)
+- **PostgreSQL**: `/postgresql/postgresql` - Database patterns
+
+### Why This Matters
+
+- **Accuracy**: Official docs prevent errors from outdated knowledge
+- **Best Practices**: Learn current recommended patterns
+- **Debugging**: Find solutions to specific error messages
+- **Framework Updates**: Stay current with latest version changes
 
 ---
 

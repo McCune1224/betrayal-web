@@ -6,17 +6,20 @@
 		player, 
 		room, 
 		connection, 
-		isHost, 
+		getIsHost,
 		messages,
 		loadPlayerFromStorage,
 		setRoom,
 		addMessage
-	} from '$lib/stores';
+	} from '$lib/stores.svelte';
 	import { connect, disconnect, sendChatMessage } from '$lib/ws';
 	
 	// Local state
 	let chatInput = $state<string>('');
 	let messagesContainer = $state<HTMLDivElement | null>(null);
+	
+	// Derived state for isHost (reactive)
+	let isHost = $derived(getIsHost());
 	
 	// Get room code from URL
 	const roomCode = $derived<string>($page.params.code ?? '');

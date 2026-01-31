@@ -30,8 +30,11 @@ export const messages = $state<Message[]>([]);
 // Event log store - system events
 export const log = $state<Array<{id: string; type?: string; text?: string; timestamp: string}>>([]);
 
-// Derived store for checking if current player is host
-export const isHost = $derived<boolean>(Boolean(player.id && room.hostId && player.id === room.hostId));
+// Derived value for checking if current player is host
+// Note: $derived cannot be exported directly, so we use a getter function
+export function getIsHost(): boolean {
+	return Boolean(player.id && room.hostId && player.id === room.hostId);
+}
 
 // Helper functions to update stores
 
