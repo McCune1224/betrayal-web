@@ -53,7 +53,3 @@ func (h *RoomHandler) JoinRoom(c *echo.Context) error {
 		"phase":    "LOBBY",
 	})
 }
-
-func (h *RoomHandler) UpgradeWebSocket(c *echo.Context) error {
-	return c.JSON(http.StatusNotImplemented, map[string]string{"error": "websocket not yet implemented"})
-}
