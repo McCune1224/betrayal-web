@@ -8,7 +8,7 @@
 #
 # =============================================================================
 
-.PHONY: help dev dev-backend dev-frontend test test-backend build build-backend build-frontend clean install db-up db-down db-migrate
+.PHONY: help dev dev-backend dev-frontend test test-backend test-verbose test-pretty test-pretty-verbose test-coverage build build-backend build-frontend clean install db-up db-down db-migrate migrate-up migrate-test db-migrate-down db-reset check check-watch quick validate sqlc setup
 
 # Default target
 help:
@@ -23,6 +23,9 @@ help:
 	@echo "  make test           - Run all tests"
 	@echo "  make test-backend   - Run backend tests only"
 	@echo "  make test-verbose   - Run backend tests with verbose output"
+	@echo "  make test-pretty    - Run tests with pretty output (requires gotestsum)"
+	@echo "  make test-pretty-verbose - Verbose pretty tests"
+	@echo "  make test-coverage  - Run tests with coverage report"
 	@echo ""
 	@echo "Building:"
 	@echo "  make build          - Build both backend and frontend"
@@ -34,6 +37,12 @@ help:
 	@echo "  make db-down        - Stop local Postgres"
 	@echo "  make db-migrate     - Run database migrations"
 	@echo "  make db-reset       - Reset database (down + up + migrate)"
+	@echo ""
+	@echo "Type Checking:"
+	@echo "  make check          - Run all type checks (Go + TypeScript)"
+	@echo "  make check-watch    - Watch mode for frontend type checking"
+	@echo "  make quick          - Quick TypeScript validation only"
+	@echo "  make validate       - Full validation (checks + build)"
 	@echo ""
 	@echo "Setup:"
 	@echo "  make install        - Install all dependencies"
@@ -153,6 +162,17 @@ sqlc:
 check:
 	cd backend && go build ./...
 	cd frontend && bun run check
+
+check-watch:
+	cd frontend && bun run check:watch
+
+quick:
+	@echo "Running quick checks (TypeScript validation only)..."
+	cd frontend && bun run check
+	@echo "✅ Frontend checks complete"
+
+validate: check build
+	@echo "✅ Full validation complete - TypeScript checks and build passed"
 
 # =============================================================================
 # Quick Start (first time setup)

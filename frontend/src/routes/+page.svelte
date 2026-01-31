@@ -1,14 +1,98 @@
 <script lang="ts">
-  let activeTab = $state("join");
-  let username = $state("");
-  let roomCode = $state("");
+  import { goto } from '$app/navigation';
+  import { createRoom, joinRoom } from '$lib/api';
+  import { setPlayer, setRoom } from '$lib/stores';
+  
+  let activeTab = $state<'join' | 'create'>("join");
+  let username = $state<string>("");
+  let roomCode = $state<string>("");
+  let error = $state<string>("");
+  let isLoading = $state<boolean>(false);
 
-  function joinGame() {
-    console.log("Join", { username, roomCode });
+  function validateUsername(name: string): string | null {
+    if (!name || name.trim().length === 0) {
+      return "Please enter your name";
+    }
+    if (name.trim().length > 20) {
+      return "Name must be 20 characters or less";
+    }
+    return null;
   }
 
-  function createGame() {
-    console.log("Create", { username });
+  function validateRoomCode(code: string): string | null {
+    if (!code || code.trim().length === 0) {
+      return "Please enter a room code";
+    }
+    // Room codes are 6 alphanumeric characters
+    if (!/^[A-Z0-9]{6}$/i.test(code.trim())) {
+      return "Room code must be 6 letters or numbers";
+    }
+    return null;
+  }
+
+  async function joinGame(): Promise<void> {
+    error = "";
+    
+    const usernameError = validateUsername(username);
+    if (usernameError) {
+      error = usernameError;
+      return;
+    }
+
+    const codeError = validateRoomCode(roomCode);
+    if (codeError) {
+      error = codeError;
+      return;
+    }
+
+    isLoading = true;
+    
+    try {
+      const formattedCode = roomCode.trim().toUpperCase();
+      const result = await joinRoom(formattedCode, username.trim());
+      
+      // Set player and room in stores
+      setPlayer(result.playerId, username.trim(), false);
+      setRoom(formattedCode, result.phase);
+      
+      // Navigate to room page
+      goto(`/room/${formattedCode}`);
+    } catch (err) {
+      error = err instanceof Error ? err.message : "Failed to join room. Please try again.";
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  async function createGame(): Promise<void> {
+    error = "";
+    
+    const usernameError = validateUsername(username);
+    if (usernameError) {
+      error = usernameError;
+      return;
+    }
+
+    isLoading = true;
+    
+    try {
+      const result = await createRoom(username.trim());
+      
+      // Set player as host
+      setPlayer(result.hostId, username.trim(), true);
+      setRoom(result.roomCode, 'LOBBY', result.hostId);
+      
+      // Navigate to room page
+      goto(`/room/${result.roomCode}`);
+    } catch (err) {
+      error = err instanceof Error ? err.message : "Failed to create room. Please try again.";
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  function clearError(): void {
+    error = "";
   }
 </script>
 
@@ -39,7 +123,7 @@
         'join'
           ? 'bg-surface-100-900 text-primary-600-400 shadow-[inset_0_-2px_0_0_rgba(0,0,0,0)] border-b-2 border-primary-500'
           : 'bg-surface-200-800 text-surface-500 hover:text-surface-700-300 hover:bg-surface-300-700'}"
-        onclick={() => (activeTab = "join")}
+        onclick={() => { activeTab = "join"; clearError(); }}
       >
         Join Room
       </button>
@@ -48,7 +132,7 @@
         'create'
           ? 'bg-surface-100-900 text-secondary-600-400 border-b-2 border-secondary-500'
           : 'bg-surface-200-800 text-surface-500 hover:text-surface-700-300 hover:bg-surface-300-700'}"
-        onclick={() => (activeTab = "create")}
+        onclick={() => { activeTab = "create"; clearError(); }}
       >
         Create Game
       </button>
@@ -56,6 +140,13 @@
 
     <!-- Content Area -->
     <div class="p-8 space-y-6">
+      <!-- Error Message -->
+      {#if error}
+        <div class="p-4 rounded-lg bg-error-500/10 border border-error-500/20 text-error-700-300 text-sm">
+          {error}
+        </div>
+      {/if}
+      
       {#if activeTab === "join"}
         <div
           class="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300"
@@ -70,6 +161,8 @@
               type="text"
               placeholder="Enter your name..."
               bind:value={username}
+              oninput={clearError}
+              maxlength="20"
             />
           </label>
           <label class="block space-y-2">
@@ -80,17 +173,23 @@
             <input
               class="w-full px-4 py-3 rounded-lg bg-surface-50-950 text-surface-900-50 border border-surface-300-700 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all uppercase tracking-[0.2em] font-mono text-center placeholder:text-surface-400-600"
               type="text"
-              placeholder="ABCD"
-              maxlength="4"
+              placeholder="ABC123"
+              maxlength="6"
               bind:value={roomCode}
+              oninput={clearError}
             />
           </label>
         </div>
         <button
-          class="w-full py-3.5 rounded-lg font-bold text-white bg-gradient-to-br from-primary-500 to-primary-600 hover:from-primary-400 hover:to-primary-500 shadow-lg shadow-primary-500/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+          class="w-full py-3.5 rounded-lg font-bold text-white bg-gradient-to-br from-primary-500 to-primary-600 hover:from-primary-400 hover:to-primary-500 shadow-lg shadow-primary-500/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           onclick={joinGame}
+          disabled={isLoading}
         >
-          Join Room
+          {#if isLoading}
+            <span class="animate-pulse">Joining...</span>
+          {:else}
+            Join Room
+          {/if}
         </button>
       {:else}
         <div
@@ -115,14 +214,21 @@
               type="text"
               placeholder="Enter your name..."
               bind:value={username}
+              oninput={clearError}
+              maxlength="20"
             />
           </label>
         </div>
         <button
-          class="w-full py-3.5 rounded-lg font-bold text-white bg-gradient-to-br from-secondary-500 to-secondary-600 hover:from-secondary-400 hover:to-secondary-500 shadow-lg shadow-secondary-500/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+          class="w-full py-3.5 rounded-lg font-bold text-white bg-gradient-to-br from-secondary-500 to-secondary-600 hover:from-secondary-400 hover:to-secondary-500 shadow-lg shadow-secondary-500/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           onclick={createGame}
+          disabled={isLoading}
         >
-          Create Lobby
+          {#if isLoading}
+            <span class="animate-pulse">Creating...</span>
+          {:else}
+            Create Lobby
+          {/if}
         </button>
       {/if}
     </div>
