@@ -111,11 +111,15 @@ db-down:
 
 # Run migrations for dev/prod DB as specified in .env
 migrate-up:
-	cd backend && migrate -path internal/db/migrations -database $(shell cat backend/.env | grep DATABASE_URL | cut -d '=' -f2) up
+	@DB_URL=$$(grep '^DATABASE_URL=' backend/.env | cut -d '=' -f2-); \
+	if [ -z "$$DB_URL" ]; then echo "Error: DATABASE_URL not found in backend/.env" && exit 1; fi; \
+	cd backend && migrate -path internal/db/migrations -database "$$DB_URL" up
 
 # Run migrations for the test DB as specified in .env
 migrate-test:
-	cd backend && migrate -path internal/db/migrations -database $(shell cat backend/.env | grep TEST_DATABASE_URL | cut -d '=' -f2) up
+	@DB_URL=$$(grep '^TEST_DATABASE_URL=' backend/.env | cut -d '=' -f2-); \
+	if [ -z "$$DB_URL" ]; then echo "Error: TEST_DATABASE_URL not found in backend/.env" && exit 1; fi; \
+	cd backend && migrate -path internal/db/migrations -database "$$DB_URL" up
 
 # Backward compatible (still hardcoded for Docker local dev DB) -- recommend using migrate-up/migrate-test
 # db-migrate:

@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"backend/internal/game"
+	"backend/internal/logging"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v5"
 )
@@ -23,15 +23,29 @@ var upgrader = websocket.Upgrader{
 // UpgradeWebSocket upgrades an HTTP connection to WebSocket and starts the client.
 // This is the entry point for WebSocket connections.
 func (h *RoomHandler) UpgradeWebSocket(c *echo.Context) error {
+	ctx := (*c).Request().Context()
+	logger := logging.WithContext(ctx)
+
 	// Extract room code and player info from query parameters
 	// URL format: /ws?room=CODE&player=ID&name=NAME
-	roomCode := c.QueryParam("room")
-	playerID := c.QueryParam("player")
-	playerName := c.QueryParam("name")
+	roomCode := (*c).QueryParam("room")
+	playerID := (*c).QueryParam("player")
+	playerName := (*c).QueryParam("name")
+
+	logger.Debug("websocket_upgrade_attempt",
+		"room_code", roomCode,
+		"player_id", playerID,
+		"player_name", playerName,
+	)
 
 	// Validate required parameters
 	if roomCode == "" || playerID == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{
+		logger.Warn("websocket_upgrade_failed",
+			"reason", "missing_parameters",
+			"room_code", roomCode,
+			"player_id", playerID,
+		)
+		return (*c).JSON(http.StatusBadRequest, map[string]string{
 			"error": "Missing required parameters: room, player",
 		})
 	}
@@ -39,15 +53,24 @@ func (h *RoomHandler) UpgradeWebSocket(c *echo.Context) error {
 	// Validate room exists
 	_, err := h.Hub.GetRoomManager().GetRoom(roomCode)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{
+		logger.Warn("websocket_upgrade_failed",
+			"reason", "room_not_found",
+			"room_code", roomCode,
+		)
+		return (*c).JSON(http.StatusNotFound, map[string]string{
 			"error": "Room not found",
 		})
 	}
 
 	// UPGRADE: Convert HTTP connection to WebSocket
-	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	conn, err := upgrader.Upgrade((*c).Response(), (*c).Request(), nil)
 	if err != nil {
-		log.Printf("WebSocket upgrade failed: %v", err)
+		logger.Error("websocket_upgrade_failed",
+			"reason", "upgrade_error",
+			"room_code", roomCode,
+			"player_id", playerID,
+			"error", err,
+		)
 		return err
 	}
 
@@ -77,7 +100,12 @@ func (h *RoomHandler) UpgradeWebSocket(c *echo.Context) error {
 	})
 	h.Hub.BroadcastToRoom(roomCode, joinMsg)
 
-	log.Printf("WebSocket client connected: room=%s player=%s", roomCode, playerID)
+	logger.Info("websocket_client_connected",
+		"room_code", roomCode,
+		"player_id", playerID,
+		"player_name", playerName,
+		"remote_addr", (*c).Request().RemoteAddr,
+	)
 
 	return nil
 }

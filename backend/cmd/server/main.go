@@ -3,31 +3,43 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
 	"backend/internal/db"
 	"backend/internal/game"
 	"backend/internal/handlers"
+	"backend/internal/logging"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
 )
 
 func main() {
+	// Load environment variables
 	godotenv.Load()
+
+	// Initialize logging first
+	logging.InitLogger()
+	logger := logging.Logger()
+
+	// Log startup
+	logger.Info("application starting",
+		"version", "1.0.0",
+		"time", time.Now(),
+	)
 
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		log.Fatal("DATABASE_URL not set")
+		logging.Fatal("DATABASE_URL not set", fmt.Errorf("environment variable DATABASE_URL is required"))
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// Initialize database
 	if err := db.InitDB(ctx, dbURL); err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		logging.Fatal("Failed to connect to database", err)
 	}
 	defer func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -37,8 +49,12 @@ func main() {
 
 	e := echo.New()
 
-	// Middleware
+	// Middleware - ORDER MATTERS
+	// 1. Recovery first to catch panics
 	e.Use(middleware.Recover())
+	// 2. Request logging
+	e.Use(logging.HTTPMiddleware())
+	// 3. CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -48,6 +64,7 @@ func main() {
 	// Initialize game hub
 	hub := game.NewHub()
 	go hub.Run()
+	logger.Info("game hub initialized")
 
 	// Handlers
 	roomHandler := &handlers.RoomHandler{Hub: hub}
@@ -62,8 +79,8 @@ func main() {
 		port = "8080"
 	}
 
-	log.Printf("Server running on :%s\n", port)
+	logging.StartupLog(port, true)
 	if err := e.Start(fmt.Sprintf(":%s", port)); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+		logging.Fatal("Failed to start server", err)
 	}
 }

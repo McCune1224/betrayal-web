@@ -1,5 +1,7 @@
 package game
 
+import "backend/internal/logging"
+
 // Hub manages all WebSocket clients and coordinates message broadcasting.
 // WHY: Centralizes all WebSocket state to prevent race conditions.
 // The hub runs in its own goroutine and uses channels for all communication.
@@ -41,20 +43,35 @@ func NewHub() *Hub {
 // WHY GOROUTINE: This runs forever, handling all client registration/unregistration.
 // It must be started in a separate goroutine to avoid blocking.
 func (h *Hub) Run() {
+	logger := logging.Logger()
+	logger.Info("hub_started")
+
 	for {
 		// select statement is the event loop - waits for any channel operation.
 		// This is the core of the hub's coordination logic.
 		select {
 		case client := <-h.register:
 			// New client is joining a room
+			logger := logging.WSLogger(client.RoomCode, client.PlayerID)
+
 			// WHY CHECK: Lazily create room entry if it doesn't exist
 			if _, ok := h.rooms[client.RoomCode]; !ok {
 				h.rooms[client.RoomCode] = make(map[*Client]bool)
+				logger.Info("room_created_by_first_client")
 			}
+
 			// Add client to the room's client set
 			h.rooms[client.RoomCode][client] = true
 
+			clientCount := len(h.rooms[client.RoomCode])
+			logger.Info("client_registered",
+				"room_client_count", clientCount,
+				"total_rooms", len(h.rooms),
+			)
+
 		case client := <-h.unregister:
+			logger := logging.WSLogger(client.RoomCode, client.PlayerID)
+
 			// Client is disconnecting
 			// WHY NESTED CHECKS: Client might have already been removed
 			if _, ok := h.rooms[client.RoomCode]; ok {
@@ -63,9 +80,16 @@ func (h *Hub) Run() {
 					delete(h.rooms[client.RoomCode], client)
 					// Close client's send channel to signal writePump to exit
 					close(client.Send)
+
+					clientCount := len(h.rooms[client.RoomCode])
+					logger.Info("client_unregistered",
+						"room_client_count", clientCount,
+					)
+
 					// Clean up empty rooms to prevent memory leak
 					if len(h.rooms[client.RoomCode]) == 0 {
 						delete(h.rooms, client.RoomCode)
+						logger.Info("room_deleted_empty")
 					}
 				}
 			}
@@ -73,19 +97,31 @@ func (h *Hub) Run() {
 		case message := <-h.broadcast:
 			// Broadcast to all clients in all rooms
 			// WHY: System announcements, global events
+			logger := logging.Logger()
+			totalClients := 0
+
 			for roomCode := range h.rooms {
 				for client := range h.rooms[roomCode] {
+					totalClients++
 					select {
 					case client.Send <- message:
 						// Message queued successfully
 					default:
 						// NON-BLOCKING SEND: Client's buffer is full (too slow).
 						// Close connection and clean up to prevent blocking the hub.
+						wsLogger := logging.WSLogger(roomCode, client.PlayerID)
+						wsLogger.Warn("client_too_slow_disconnecting")
+
 						close(client.Send)
 						delete(h.rooms[roomCode], client)
 					}
 				}
 			}
+
+			logger.Debug("global_broadcast_sent",
+				"message_type", message.Type,
+				"total_clients", totalClients,
+			)
 		}
 	}
 }
@@ -105,18 +141,36 @@ func (h *Hub) Unregister() chan<- *Client {
 // CHANNEL PATTERN: Fan-out (one hub -> many clients).
 // Iterates over room's clients and sends to each client's buffered channel.
 func (h *Hub) BroadcastToRoom(roomCode string, message WSMessage) {
+	logger := logging.RoomLogger(roomCode)
+
 	if clients, ok := h.rooms[roomCode]; ok {
+		sentCount := 0
+		dropCount := 0
+
 		for client := range clients {
 			select {
 			case client.Send <- message:
 				// Message queued successfully - client will receive it
+				sentCount++
 			default:
 				// Buffer full - client is too slow. Disconnect them.
 				// WHY: Prevents one slow client from blocking broadcasts to others.
+				wsLogger := logging.WSLogger(roomCode, client.PlayerID)
+				wsLogger.Warn("broadcast_to_slow_client_dropping")
+
 				close(client.Send)
 				delete(clients, client)
+				dropCount++
 			}
 		}
+
+		logger.Debug("room_broadcast_sent",
+			"message_type", message.Type,
+			"sent_count", sentCount,
+			"dropped_count", dropCount,
+		)
+	} else {
+		logger.Warn("broadcast_to_nonexistent_room")
 	}
 }
 

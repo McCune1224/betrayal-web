@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"backend/internal/logging"
 	"backend/internal/models"
 	"github.com/google/uuid"
 )
@@ -39,6 +40,13 @@ func (rm *RoomManager) CreateRoom(hostID string) string {
 	}
 
 	rm.rooms[code] = room
+
+	logger := logging.RoomLogger(code)
+	logger.Info("room_created",
+		"host_id", hostID,
+		"total_rooms", len(rm.rooms),
+	)
+
 	return code
 }
 
@@ -48,6 +56,8 @@ func (rm *RoomManager) GetRoom(code string) (*models.Room, error) {
 
 	room, exists := rm.rooms[code]
 	if !exists {
+		logger := logging.RoomLogger(code)
+		logger.Debug("room_not_found")
 		return nil, ErrRoomNotFound
 	}
 	return room, nil
@@ -59,6 +69,10 @@ func (rm *RoomManager) JoinRoom(code string, playerName string) (string, error) 
 
 	room, exists := rm.rooms[code]
 	if !exists {
+		logger := logging.RoomLogger(code)
+		logger.Warn("join_attempt_to_nonexistent_room",
+			"player_name", playerName,
+		)
 		return "", ErrRoomNotFound
 	}
 
@@ -66,6 +80,13 @@ func (rm *RoomManager) JoinRoom(code string, playerName string) (string, error) 
 	_ = room
 	_ = playerID
 	_ = playerName
+
+	logger := logging.RoomLogger(code)
+	logger.Info("player_joined",
+		"player_id", playerID,
+		"player_name", playerName,
+		"room_phase", room.Phase,
+	)
 
 	return playerID, nil
 }
